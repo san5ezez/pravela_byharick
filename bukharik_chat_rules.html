@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Правила чата — Бухарик</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Mulish:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0b0f;
+    --surface: #161219;
+    --surface2: #1e1920;
+    --border: rgba(255,255,255,0.07);
+    --accent: #e8a33a;
+    --accent2: #c9623c;
+    --text: #f0ebe8;
+    --muted: #8a8290;
+    --green: #4caf82;
+    --red: #d95e5e;
+    --blue: #5b9fe8;
+    --purple: #9b7fe8;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Mulish', sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .page { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* ── HEADER ── */
+  .hero {
+    padding: 64px 0 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 320px;
+    height: 160px;
+    background: radial-gradient(ellipse, rgba(232,163,58,0.18) 0%, transparent 70%);
+    pointer-events: none;
+    filter: blur(12px);
+  }
+
+  .hero-icon {
+    font-size: 64px;
+    line-height: 1;
+    margin-bottom: 20px;
+    animation: sway 3s ease-in-out infinite;
+    display: block;
+  }
+
+  @keyframes sway {
+    0%, 100% { transform: rotate(-4deg); }
+    50% { transform: rotate(4deg); }
+  }
+
+  .hero h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(26px, 5vw, 38px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+
+  .hero h1 span {
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 380px;
+    margin: 0 auto 28px;
+  }
+
+  .badge-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 4px;
+  }
+
+  .pill {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 100px;
+    letter-spacing: 0.03em;
+  }
+
+  .pill-amber { background: rgba(232,163,58,0.15); color: var(--accent); border: 1px solid rgba(232,163,58,0.3); }
+  .pill-red   { background: rgba(217,94,94,0.12); color: var(--red); border: 1px solid rgba(217,94,94,0.25); }
+  .pill-green { background: rgba(76,175,130,0.12); color: var(--green); border: 1px solid rgba(76,175,130,0.25); }
+
+  /* ── DIVIDER ── */
+  .hdiv {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 40px 0 24px;
+  }
+
+  .hdiv-line { flex: 1; height: 1px; background: var(--border); }
+
+  .hdiv-label {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── RULE CARDS ── */
+  .rules-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .rule {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .rule::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 16px 0 0 16px;
+    background: var(--rule-accent, transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .rule:hover {
+    background: var(--surface2);
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  .rule:hover::before { opacity: 1; }
+
+  .rule-icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    background: var(--rule-icon-bg, rgba(255,255,255,0.06));
+  }
+
+  .rule-content { flex: 1; min-width: 0; }
+
+  .rule-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  .rule-num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
+  .rule-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .rule-tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-left: auto;
+  }
+
+  .tag-ban { background: rgba(217,94,94,0.15); color: var(--red); }
+  .tag-warn { background: rgba(232,163,58,0.15); color: var(--accent); }
+
+  .rule-desc {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  /* colour variants */
+  .r-amber { --rule-accent: var(--accent); --rule-icon-bg: rgba(232,163,58,0.12); }
+  .r-red   { --rule-accent: var(--red);    --rule-icon-bg: rgba(217,94,94,0.12); }
+  .r-green { --rule-accent: var(--green);  --rule-icon-bg: rgba(76,175,130,0.12); }
+  .r-blue  { --rule-accent: var(--blue);   --rule-icon-bg: rgba(91,159,232,0.12); }
+  .r-purple{ --rule-accent: var(--purple); --rule-icon-bg: rgba(155,127,232,0.12); }
+  .r-coral { --rule-accent: var(--accent2);--rule-icon-bg: rgba(201,98,60,0.12); }
+
+  /* ── PUNISHMENT TABLE ── */
+  .punish-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+
+  .punish-table th {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .punish-table td {
+    padding: 12px 16px;
+    font-size: 13.5px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .punish-table tr:last-child td { border-bottom: none; }
+
+  .punish-table .offense { color: var(--text); font-weight: 500; }
+
+  .punish-table .step-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  /* ── MOTTO ── */
+  .motto {
+    margin-top: 48px;
+    padding: 32px 28px;
+    background: linear-gradient(135deg, rgba(232,163,58,0.08), rgba(201,98,60,0.08));
+    border: 1px solid rgba(232,163,58,0.2);
+    border-radius: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .motto::before {
+    content: '🍺';
+    position: absolute;
+    font-size: 120px;
+    opacity: 0.04;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .motto p {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(16px, 3vw, 22px);
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--text);
+    position: relative;
+  }
+
+  .motto p span { color: var(--accent); }
+
+  .motto-small {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+    position: relative;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  footer span {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  footer a {
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  /* ── ENTRANCE ANIM ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .rule {
+    opacity: 0;
+    animation: fadeUp 0.45s ease forwards;
+  }
+
+  .rule:nth-child(1)  { animation-delay: 0.05s; }
+  .rule:nth-child(2)  { animation-delay: 0.10s; }
+  .rule:nth-child(3)  { animation-delay: 0.15s; }
+  .rule:nth-child(4)  { animation-delay: 0.20s; }
+  .rule:nth-child(5)  { animation-delay: 0.25s; }
+  .rule:nth-child(6)  { animation-delay: 0.30s; }
+  .rule:nth-child(7)  { animation-delay: 0.35s; }
+  .rule:nth-child(8)  { animation-delay: 0.40s; }
+  .rule:nth-child(9)  { animation-delay: 0.45s; }
+  .rule:nth-child(10) { animation-delay: 0.50s; }
+
+  .hero { animation: fadeUp 0.5s ease forwards; }
+  .motto { animation: fadeUp 0.5s ease 0.55s both; }
+  footer { animation: fadeUp 0.5s ease 0.6s both; }
+
+  @media (max-width: 520px) {
+    .rule { padding: 14px 14px; }
+    .rule-icon-wrap { width: 34px; height: 34px; font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-glow"></div>
+    <span class="hero-icon">🍺</span>
+    <h1>Правила чата<br><span>Бухарика</span></h1>
+    <p class="hero-sub">Живём дружно, стрим не тушим, чат не гасим. Прочитай раз — не пожалеешь.</p>
+    <div class="badge-row">
+      <span class="pill pill-green">Для всех зрителей</span>
+      <span class="pill pill-amber">Нарушение = варн</span>
+      <span class="pill pill-red">Игнор правил = бан</span>
+    </div>
+  </div>
+
+  <!-- SECTION: ОБЩЕНИЕ -->
+  <div class="hdiv"><div class="hdiv-line"></div><span class="hdiv-label">💬 Общение</span><div class="hdiv-line"></div></div>
+
+  <div class="rules-grid">
+
+    <div class="rule r-green">
+      <div class="rule-icon-wrap">🤝</div>
+      <div class="rule-content">
+        <div class="rule-head">
+          <span class="rule-num">01</span>
+          <span class="rule-title">Уважай всех в чате</span>
+        </div>
+        <p class="rule-desc">Оскорбления, травля и агрессия в адрес зрителей или стримера — под запретом. Здесь все свои, ведём себя по-людски.</p>
+      </div>
+    </div>
+
+    <div class="rule r-blue">
+      <div class="rule-icon-wrap">🚫</div>
+      <div class="rule-content">
+        <div class="rule-head">
+          <span class="rule-num">02</span>
+          <span class="rule-title">Без политики и религии</span>
+        </div>
+        <p class="rule-desc">Мы тут пьём и играем, а не спорим. Политические и религиозные дискуссии переносим за пределы чата.</p>
+      </div>
+    </div>
+
+    <div class="rule r-amber">
+      <div class="rule-icon-wrap">📵</div>
+      <div class="rule-content">
+        <div class="rule-head">
+          <span class="rule-num">03</span>
+          <span class="rule-title">Никакого спама и флуда</span>
+          <span class="rule-tag tag-warn">варн</span>
+        </div>
+        <p class="rule-desc">Одинаковые сообщения, бессмысленные символы, километровые наборы смайлов — это флуд. Одна мысль = одно сообщение.</p>
+      </div>
+    </div>
+
+    <div class="rule r-purple">
+      <div class="rule-icon-wrap">🔗</div>
+      <div class="rule-content">
+        <div class="rule-head">
+          <span class="rule-num">04</span>
+          <span class="rule-title">Без сторонней рекламы и ссылок</span>
+          <span class="rule-tag tag-warn">варн</span>
+        </div>
+        <p class="rule-desc">Запрещено кидать ссылки на чужие каналы, стримы и сайты без разрешения администрации. Реклама — только через договорённость.</p>
+      </div>
+    </div>
+
+    <div class="rule r-green">
+      <div class="rule-icon-wrap">🇷🇺</div>
+      <div class="rule-content">
+        <div class="rule-head">
+          <span class="rule-num">05</span>
+          <span class="rule-title">Общаемся на русском</span>
+        </div>
+        <p class="rule-desc">Основной язык чата — русский. Короткие фразы на других языках допустимы, но злоупотреблять не стоит.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECTION: КОНТЕНТ -->
+  <div class="hdiv"><div class="hdiv-line"></div><span class="hdiv-label">🎮 Контент</span><div class="hdiv-line"></div></div>
+
+  <div class="rules-grid">
+
+    <div class="rule r-red">
+      <div class="rule-icon-wrap">🔞</div>
+      <div class="rule-content">
+        <div class="rule-head">
+          <span class="rule-num">06</span>
+          <span class="rule-title">Без 18+ и шок-контента</span>
+          <span class="rule-tag tag-ban">бан</span>
+        </div>
+        <p class="rule-desc">Непристойные изображения, оскорбительные GIF-ки, ссылки на шокирующий материал — немедленный бан без предупреждений.</p>
+      </div>
+    </div>
+
+    <div class="rule r-coral">
+      <div class="rule-icon-wrap">🤫</div>
+      <div class="rule-content">
+        <div class="rule-head">
+          <span class="rule-num">07</span>
+          <span class="rule-title">Без спойлеров</span>
+        </div>
+        <p class="rule-desc">Не раскрывай сюжет игр или кино без предупреждения. Уважай тех, кто ещё не прошёл и не смотрел. Помечай спойлер явно.</p>
+      </div>
+    </div>
+
+    <div class="rule r-red">
+      <div class="rule-icon-wrap">🤬</div>
+      <div class="rule-content">
+        <div class="rule-head">
+          <span class="rule-num">08</span>
+          <span class="rule-title">Без дискриминации и ненависти</span>
+          <span class="rule-tag tag-ban">бан</span>
+        </div>
+        <p class="rule-desc">Расизм, нацизм, гомофобия и любая другая ненависть по признакам — мгновенный бан. Это жёсткое правило без исключений.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECTION: СТРИМЕР -->
+  <div class="hdiv"><div class="hdiv-line"></div><span class="hdiv-label">🎙️ Стример</span><div class="hdiv-line"></div></div>
+
+  <div class="rules-grid">
+
+    <div class="rule r-amber">
+      <div class="rule-icon-wrap">🙏</div>
+      <div class="rule-content">
+        <div class="rule-head">
+          <span class="rule-num">09</span>
+          <span class="rule-title">Не надоедай стримеру</span>
+        </div>
+        <p class="rule-desc">Не проси без конца сменить игру или сыграть конкретное — Бухарик сам знает, что делать. Предложить один раз — ок, долбить — нет.</p>
+      </div>
+    </div>
+
+    <div class="rule r-green">
+      <div class="rule-icon-wrap">💬</div>
+      <div class="rule-content">
+        <div class="rule-head">
+          <span class="rule-num">10</span>
+          <span class="rule-title">Слово модератора — закон</span>
+        </div>
+        <p class="rule-desc">Если модератор написал предупреждение — принимаем без споров. Апелляции отправляй в личку, а не устраивай разборку в чате.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PUNISHMENT TABLE -->
+  <div class="hdiv"><div class="hdiv-line"></div><span class="hdiv-label">⚖️ Система наказаний</span><div class="hdiv-line"></div></div>
+
+  <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden;">
+    <table class="punish-table">
+      <thead>
+        <tr>
+          <th>Нарушение</th>
+          <th>1-й раз</th>
+          <th>2-й раз</th>
+          <th>3-й раз</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="offense">Спам / флуд</td>
+          <td><span class="step-dot" style="background:var(--accent)"></span>Варн</td>
+          <td><span class="step-dot" style="background:var(--accent2)"></span>Мут 1ч</td>
+          <td><span class="step-dot" style="background:var(--red)"></span>Бан</td>
+        </tr>
+        <tr>
+          <td class="offense">Оскорбления</td>
+          <td><span class="step-dot" style="background:var(--accent)"></span>Варн</td>
+          <td><span class="step-dot" style="background:var(--red)"></span>Мут 24ч</td>
+          <td><span class="step-dot" style="background:var(--red)"></span>Бан</td>
+        </tr>
+        <tr>
+          <td class="offense">Реклама / ссылки</td>
+          <td><span class="step-dot" style="background:var(--accent2)"></span>Мут 1ч</td>
+          <td><span class="step-dot" style="background:var(--red)"></span>Бан</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td class="offense">18+ контент</td>
+          <td><span class="step-dot" style="background:var(--red)"></span>Бан</td>
+          <td>—</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td class="offense">Ненависть / нацизм</td>
+          <td><span class="step-dot" style="background:var(--red)"></span>Бан</td>
+          <td>—</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MOTTO -->
+  <div class="motto">
+    <p>Стрим — это <span>праздник</span>.<br>Не порть его другим.</p>
+    <p class="motto-small">Нарушаешь? Модераторы работают быстро. 🍺</p>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <span>© Канал Бухарика — все права защищены пивом</span>
+    <a href="#">↑ Наверх</a>
+  </footer>
+
+</div>
+</body>
+</html>
